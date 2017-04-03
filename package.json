@@ -21,6 +21,9 @@
     "@angular/platform-browser-dynamic": "^2.3.1",
     "@angular/router": "^3.3.1",
     "core-js": "^2.4.1",
+    "mongodb": "^2.2.25",
+    "mongoskin": "^2.1.0",
+    "morgan": "^1.8.1",
     "rxjs": "^5.0.1",
     "ts-helpers": "^1.1.1",
     "zone.js": "^0.7.2"
@@ -43,4 +46,4 @@
     "tslint": "^4.3.0",
     "typescript": "~2.0.3"
   }
-} 
+}
