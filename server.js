@@ -5,9 +5,8 @@ var logger = require('morgan');
 //var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var http = require('http');
-
-var db = require('mongoskin').db('localhost:27017/posts'); 
-
+var config = require('./config');
+var db = require('mongoskin').db(config.database);
 var index = require('./routes/index');
 var users = require('./routes/users');
 
