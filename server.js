@@ -6,9 +6,11 @@ var logger = require('morgan');
 var bodyParser = require('body-parser');
 var http = require('http');
 var config = require('./config');
-var db = require('mongoskin').db(config.database);
-var index = require('./routes/index');
-var users = require('./routes/users');
+var db = require('mongoskin').db(config.database,confing.dbCredentials);
+var routes = require('./routes/index');
+
+var api = require('./routes/api');
+var login = require('./routes/login');
 
 var app = express();
 
@@ -24,12 +26,30 @@ app.use(bodyParser.urlencoded({ extended: false }));
 //app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'dist')));
 
+app.use(function (req, res, next) {
+	//console.log(" Req received >> "+JSON.stringify(req.body));
+	if (req.body.pkey === config.pkey) {
+		console.log("pkey verified");
+		req.db = db;
+		next();
+	} else {
+	console.log("pkey Not verified");
+		res.json({
+			"status" : 0
+		});
+	}
+});
+
+app.use('/', routes);
+app.use('/api', api);
+app.use('/login', login);
+
+
+/*
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
-
-app.use('/', index);
-app.use('/users', users);
+*/
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
