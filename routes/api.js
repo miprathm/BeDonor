@@ -281,7 +281,7 @@ router.post('/upload', function (req, res, next) {
 			//console.log('279 ' + (err ? JSON.stringify(err): 'No e') + (success? JSON.stringify(success):'No s'));
 
 			if (!success || err) {
-				var filePath = path.join(__dirname,config.allExcelSheetFilePath , uuid.v4() + ".xlsx");
+				var filePath = path.join(req.rootFilePath,config.allExcelSheetFilePath , uuid.v4() + ".xlsx");
 				fs.writeFile(filePath, (new Buffer(req.body.upload, 'base64')), function (err) {
 					err ? console.log('filePath :' + filePath + 'Error ' + JSON.stringify(err)) : '';
 

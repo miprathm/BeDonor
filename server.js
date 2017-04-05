@@ -28,6 +28,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 app.use(function (req, res, next) {
 	//console.log(" Req received >> "+JSON.stringify(req.body));
+	req.rootFilePath = __dirname;
 	if (req.body.pkey === config.pkey) {
 		console.log("pkey verified");
 		req.db = db;
