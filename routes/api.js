@@ -8,6 +8,7 @@ var config = require('../config');
 var uuid = require('node-uuid');
 var xslToJson = require("xlsx-to-json");
 var md5 = require('md5');
+var path = require('path');
 /* GET home page. */
 router.use('/', function (req, res, next) {
 	//console.log(" Success ");
@@ -200,7 +201,8 @@ router.post('/changepassword', function (req, res, next) {
 	var donorId = req.body.id || '';
 
 	if (donorId != null && donorId != '' && donorId.length === 24 && password != '' /*&& password.length > 20*/
-	) {
+	)
+	{
 		var db = req.db;
 		//var encriptedPass = sha1(Password);
 		//
@@ -277,9 +279,9 @@ router.post('/upload', function (req, res, next) {
 			hash : generatedHash
 		}, function (err, success) {
 			//console.log('279 ' + (err ? JSON.stringify(err): 'No e') + (success? JSON.stringify(success):'No s'));
-				
+
 			if (!success || err) {
-				var filePath = config.allExcelSheetFilePath + uuid.v4() + ".xlsx";
+				var filePath = path.join(__dirname,config.allExcelSheetFilePath , uuid.v4() + ".xlsx");
 				fs.writeFile(filePath, (new Buffer(req.body.upload, 'base64')), function (err) {
 					err ? console.log('filePath :' + filePath + 'Error ' + JSON.stringify(err)) : '';
 
@@ -345,6 +347,7 @@ router.post('/upload', function (req, res, next) {
 									db.collection('UploadHash').insert({
 										hash : generatedHash
 									}, function () {
+										fs.unlink(filePath, function () {});
 										console.log('Added in hash');
 									});
 
@@ -358,9 +361,9 @@ router.post('/upload', function (req, res, next) {
 					});
 				});
 			} else {
-			//console.log('359 ' + (err ? JSON.stringify(err): 'No e') + (success? JSON.stringify(success):'No s'));
-				
-			//console.log('Already entry');
+				//console.log('359 ' + (err ? JSON.stringify(err): 'No e') + (success? JSON.stringify(success):'No s'));
+
+				//console.log('Already entry');
 				res.json({
 					"status" : 4,
 					"message" : "Successfully added!"
