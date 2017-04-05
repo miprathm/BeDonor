@@ -6,7 +6,12 @@ var logger = require('morgan');
 var bodyParser = require('body-parser');
 var http = require('http');
 var config = require('./config');
-var db = require('mongoskin').db(config.database,confing.dbCredentials);
+var db = require('mongoskin').db(config.database
+/*,{
+	username : "root",
+	password:"Vaga6r4N"
+}
+*/);
 var routes = require('./routes/index');
 
 var api = require('./routes/api');
@@ -15,8 +20,8 @@ var login = require('./routes/login');
 var app = express();
 
 // view engine setup
-//app.set('views', path.join(__dirname, 'views'));
-//app.set('view engine', 'jade');
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));

@@ -7,7 +7,7 @@ var fs = require('fs');
 var config = require('../config');
 var uuid = require('node-uuid');
 var xslToJson = require("xlsx-to-json");
-
+var md5 = require('md5');
 /* GET home page. */
 router.use('/', function (req, res, next) {
 	//console.log(" Success ");
@@ -45,7 +45,7 @@ router.use('/', function (req, res, next) {
 
 router.post('/donor', function (req, res, next) {
 	// Is Birthdat request
-	
+
 	// It will firstName
 	/*{
 	firstName:'',
@@ -239,6 +239,8 @@ router.post('/upload', function (req, res, next) {
 	// Get Todays date and time to set file Name
 	// get that file Convert to Json
 	// And Add Entry To User Database
+
+
 	// xsl - to- json
 
 
@@ -263,76 +265,113 @@ router.post('/upload', function (req, res, next) {
 	 */
 	if (req.body.upload != null) {
 		var db = req.db;
-		//console.log("Working");
+		// Check wether upload is twice
+		// first generate md5
+		// check it into collection UploadHash
+		// if present then return
+		// else on completion add into collection
 
-		var filePath = config.allExcelSheetFilePath + uuid.v4() + ".xlsx";
-		fs.writeFile(filePath, (new Buffer(req.body.upload, 'base64')), function (err) {
-			if (err)
-				return res.json({
-					status : 0,
-					"message" : "File is Not Write Successfully!"
-				});
-			xslToJson({
-				input : filePath, // input xls
-				output : null, //"output.json" // output json
-				sheet : null, //"sheetname", // specific sheetname
-			}, function (err, result) {
-				if (err) {
-					return res.json({
-						"status" : 0,
-						"message" : "Not able to parse json from excel sheet!"
-					});
-					//console.error(err);
-				} else {
-					//console.log(result);
-					var modifiedRsult = result.map(function (obj) {
-							return {
-								"name" : {
-									"firstName" : obj.FirstName || '',
-									"middleName" : obj.MiddleName || '',
-									"lastName" : obj.LastName || ''
-								},
-								"address" : {
-									"fullAddress" : obj.Address || '',
-									"pinCode" : obj.PinCode || '',
-									"country" : obj.Country || 'India',
-									"state" : obj.State || 'Maharashtra',
-									"city" : obj.City || ''
-								},
-								"contactDetails" : {
-									"mobileNo" : obj.MobileNo || '',
-									"resPhone" : obj.ResPhone || '',
-									"email" : obj.Email || '',
-									"other" : obj.OtherContact ? obj.OtherContact.split(",") : []
-								},
-								"locationTags" : obj.Location ? obj.Location.split(",") : [obj.City || ''],
-								"bloodGroup" : obj.Email || '',
-								"gender" : obj.Gender || '',
-								"remark" : [],
-								"lastBloodDonation" : [],
-								"birthDate" : obj.BirthDate ? new Date(obj.BirthDate) : null,
-								"isActive" : 1,
-								"isRecoveryActivated" : false,
-							};
+		var generatedHash = md5(req.body.upload);
+		//console.log(" Generated "+generatedHash);
+		db.collection('UploadHash').findOne({
+			hash : generatedHash
+		}, function (err, success) {
+			//console.log('279 ' + (err ? JSON.stringify(err): 'No e') + (success? JSON.stringify(success):'No s'));
+				
+			if (!success || err) {
+				var filePath = config.allExcelSheetFilePath + uuid.v4() + ".xlsx";
+				fs.writeFile(filePath, (new Buffer(req.body.upload, 'base64')), function (err) {
+					err ? console.log('filePath :' + filePath + 'Error ' + JSON.stringify(err)) : '';
+
+					if (err)
+						return res.json({
+							status : 0,
+							"message" : "File is Not Write Successfully!"
 						});
-					//console.log(" modifiedRsult " + JSON.stringify(modifiedRsult));
-					//res.json(modifiedRsult);
-					db.collection('donor').insert(modifiedRsult, function (err, result) {
-						if (err)
+					xslToJson({
+						input : filePath, // input xls
+						output : null, //"output.json" // output json
+						sheet : null, //"sheetname", // specific sheetname
+					}, function (err, result) {
+						if (err) {
 							return res.json({
 								"status" : 0,
-								"message" : "Not Added into database!"
+								"message" : "Not able to parse json from excel sheet!"
 							});
-						if (result) {
-							res.json({
-								"status" : 1,
-								"message" : "Successfully added!"
+							//console.error(err);
+						} else {
+							//console.log('Result : '+JSON.stringify(result));
+							//return;
+							var modifiedRsult = result.map(function (obj) {
+									return {
+										"name" : {
+											"firstName" : obj.FirstName || '',
+											"middleName" : obj.MiddleName || '',
+											"lastName" : obj.LastName || ''
+										},
+										"address" : {
+											"fullAddress" : obj.Address || '',
+											"pinCode" : obj.PinCode || '',
+											"country" : obj.Country || 'India',
+											"state" : obj.State || 'Maharashtra',
+											"city" : obj.City || ''
+										},
+										"contactDetails" : {
+											"mobileNo" : obj.MobileNo || '',
+											"resPhone" : obj.ResPhone || '',
+											"email" : obj.Email || '',
+											"other" : obj.OtherContact ? obj.OtherContact.split(",") : []
+										},
+										"locationTags" : obj.Location ? obj.Location.split(",") : [obj.City || ''],
+										"bloodGroup" : obj.BloodGroup || '',
+										"gender" : obj.Gender || '',
+										"remark" : [],
+										"lastBloodDonation" : [],
+										"birthDate" : obj.BirthDate ? new Date(obj.BirthDate) : null,
+										"isActive" : 1,
+										"isRecoveryActivated" : false,
+									};
+								});
+							//console.log(" modifiedRsult " + JSON.stringify(modifiedRsult));
+							//res.json(modifiedRsult);
+							db.collection('donor').insert(modifiedRsult, function (err, result) {
+								//console.log(' Error '+JSON.stringify(err));
+								if (err)
+									return res.json({
+										"status" : 0,
+										"message" : "Not Added into database!"
+									});
+								if (result) {
+									db.collection('UploadHash').insert({
+										hash : generatedHash
+									}, function () {
+										console.log('Added in hash');
+									});
+
+									res.json({
+										"status" : 1,
+										"message" : "Successfully added!"
+									});
+								}
 							});
 						}
 					});
-				}
-			});
+				});
+			} else {
+			//console.log('359 ' + (err ? JSON.stringify(err): 'No e') + (success? JSON.stringify(success):'No s'));
+				
+			//console.log('Already entry');
+				res.json({
+					"status" : 4,
+					"message" : "Successfully added!"
+				});
+			}
+
 		});
+
+		//console.log("Working");
+
+
 	}
 });
 
