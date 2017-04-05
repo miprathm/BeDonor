@@ -6,12 +6,7 @@ var logger = require('morgan');
 var bodyParser = require('body-parser');
 var http = require('http');
 var config = require('./config');
-var db = require('mongoskin').db(config.database
-/*,{
-	username : "root",
-	password:"Vaga6r4N"
-}
-*/);
+var db = require('mongoskin').db(config.database);
 var routes = require('./routes/index');
 
 var api = require('./routes/api');
