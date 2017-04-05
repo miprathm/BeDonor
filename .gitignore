@@ -3,7 +3,7 @@ config.js
 # compiled output
 # /dist
 /tmp
-
+/private
 # dependencies
 /node_modules
 
